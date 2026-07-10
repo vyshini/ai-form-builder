@@ -68,16 +68,13 @@
             </div>
             
             {% if questions %}
-            <div style="text-align: center; margin-top: 20px; padding-bottom: 40px;">
-                <button type="submit" class="add-btn2" style="background-color: #673ab7; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Submit Form Answers</button>
-            </div>
-            {% endif %}
-        </form>
-        <div style="text-align: center; margin-top: 40px; padding-bottom: 50px;">
+            <div style="text-align: center; margin-top: 40px; padding-bottom: 50px;">
             <a href="/dashboard" class="add-btn2" style="background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-size: 16px; font-weight: bold; display: inline-block;">
                 Save Form & Go to Dashboard
             </a>
         </div>
+            {% endif %}
+        </form>
         <script>
             function toggleform() {
                 var form = document.getElementById("questionform");
