@@ -5,6 +5,7 @@ redirect, session, flash, Response, jsonify
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
+import certifi
 import bcrypt
 from bson import ObjectId
 import os
