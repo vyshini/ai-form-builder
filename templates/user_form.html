@@ -1,0 +1,40 @@
+<html>
+<head>
+    <title>{{ form.title }}</title>
+    <link rel = "stylesheet" href = "{{url_for('static',filename = 'style2.css')}}">
+</head>
+<body>
+
+<h2 style="text-align:center">{{ form.title }}</h2>
+
+<form method="POST" action="/submit/{{ form._id }}" enctype="multipart/form-data">
+ <div class = "form-wrapper">
+{% if questions %}
+    {% for question in questions %}
+    <div class = "google-card">
+        <a href="/delete_question/{{ question._id }}/{{ form._id }}" style="color:red; text-decoration:none;">Delete</a>
+        <p class = "question-number">Question{{loop.index}}</p></strong></p>
+        <h3>{{question.question_text}}</h3>
+   {% if question.question_type == "text" %}
+   <input type = "text" class = "answer-input" placeholder = "Your answer">
+   {% elif question.question_type == "mcq" %}
+   {% for option in question.options %}
+   <div class = "mcq_option">
+    <input type = "radio" name = "answer_{{ question._id }}"  value = "{{option}}">{{option}}
+   </div>
+   {% endfor %}
+   {% elif question.question_type == "image" %}
+       <input type="file" name="answer_{{ question._id }}"accept="image/*"class="answer-input">
+    {% endif %}
+    </div>
+    {% endfor %}
+   {% else %}
+    <p style = "text-align : center"> No questions added yet.</p>
+{% endif %}
+</div>
+<div class="share-link">
+    <p>Share this link:</p>
+    <input type="text" value="{{ request.host_url }}form/{{ form._id }}" readonly>
+</div></form>
+</body>
+</html>

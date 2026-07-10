@@ -1,0 +1,61 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Success - {{ form_title if form_title else "Form" }}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}">
+        <style>
+            body {
+                background-color: #f0ebf8; /* Google Forms background color */
+                font-family: 'Roboto', Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            .form-wrapper {
+                max-width: 640px;
+                margin: 60px auto;
+                padding: 0 20px;
+            }
+            .success-card {
+                background-color: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border-top: 10px solid #673ab7; /* Signature Google Forms purple banner */
+                padding: 30px;
+            }
+            .form-title {
+                font-size: 32px;
+                margin-top: 0;
+                margin-bottom: 20px;
+                font-weight: 400;
+                color: #202124;
+            }
+            .success-message {
+                font-size: 14px;
+                color: #202124;
+                margin-bottom: 30px;
+            }
+            .submit-another {
+                color: #1a73e8; /* Google blue link color */
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            .submit-another:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="form-wrapper">
+            <div class="success-card">
+                
+                <h1 class="form-title">{{ form_title if form_title else "Form Submitted" }}</h1>
+                
+                <p class="success-message">Your response has been recorded.</p>
+                
+                <a href="/view_form/{{ form_id }}" class="submit-another">Submit another response</a>
+                
+            </div>
+        </div>
+    </body>
+</html>

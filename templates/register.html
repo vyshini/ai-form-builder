@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Register Page </title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+    <body>
+        <div class = "form-container">
+        <h2>Create account</h2>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div style = "color : red;text-align :center;margin-bottom:10px";>
+            {% for message in messages %}
+            {{message}}
+            {% endfor %}
+        </div>
+         {% endif %}
+         {% endwith %}
+        <form method = "POST">
+        <input type = "text" name = "name" placeholder = "username" required>
+        <input type = "email" name = "email"  placeholder = "email" required>
+        <div class = "input-wrapper">
+        <input type = "password" name = "password" id = "password" placeholder = "Password" required>
+        <span class = "eye" onclick = "togglePassword()">👁️</span>
+        </div>
+        <button type = "submit">register</button>
+        <p>Alreay have an account ? <a href = "/login"> login</a></p>
+        </div>
+        </form>
+         <script>
+           function togglePassword()
+        {
+            var pass = document.getElementById("password");
+            if(pass.type === "password")
+            {
+                pass.type = "text";
+            }
+            else
+                pass.type = "password";
+        }
+        </script>
+    </body>
+</html>

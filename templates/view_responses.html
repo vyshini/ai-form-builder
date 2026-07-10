@@ -1,0 +1,178 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Responses - {{ form.title }}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}">
+        <style>
+            .response-container { max-width: 800px; margin: 40px auto; font-family: Arial, sans-serif; }
+            
+            /* The Clickable Bar */
+            .details-card { 
+                background: white; 
+                margin-bottom: 20px; 
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                overflow: hidden;
+            }
+            .summary-header {
+                padding: 15px 20px; font-size: 18px; font-weight: bold; cursor: pointer;
+                list-style: none; display: flex; justify-content: space-between; align-items: center;
+                background: #ffffff;
+            }
+            .summary-header::-webkit-details-marker { display: none; }
+            .summary-header:hover { background: #f8f9fa; }
+            
+            /* 📦 THE NEW "BOX" FOR THE REPLICA FORM */
+            .replica-box { 
+                background-color: #f0ebf8; /* Google forms light purple background */
+                padding: 30px; 
+                border-top: 1px solid #ddd;
+            }
+            
+            /* The Form Title Header inside the Box */
+            .replica-header {
+                border-top: 8px solid #673ab7; background: white; padding: 20px; 
+                border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px;
+            }
+
+            /* The Question Cards inside the Box */
+            .question-card { 
+                background: white; padding: 20px; border-radius: 8px; 
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; 
+                border-left: 5px solid #673ab7;
+            }
+            
+            .text-input { 
+                width: 100%; border: none; border-bottom: 1px dashed #ccc; padding: 10px 0; 
+                outline: none; font-size: 14px; background-color: transparent; color: #333;
+            }
+            
+            .selected-option { font-weight: bold; color: #673ab7; background-color: #e8e0f5; padding: 5px 10px; border-radius: 4px; display: inline-block; }
+        </style>
+    </head>
+    <body style="background-color: #f4f4f9;">
+        <div class="response-container">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #333;">{{ form.title }} - Responses ({{ responses|length }})</h2>
+                <div>
+                    <a href="/dashboard" style="margin-right: 15px; text-decoration: none; color: #673ab7; font-weight: bold;">⬅ Back to Dashboard</a>
+                    <a href="/export_csv/{{ form._id }}" style="color: #2e7d32; font-weight: bold; text-decoration: none; background: white; padding: 8px 12px; border-radius: 4px; border: 1px solid #2e7d32;">📥 Download CSV</a>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 25px; border-top: 5px solid #2196f3;">
+                <h3 style="margin-top: 0; color: #333; font-size: 18px;">📈 Live Form Analytics</h3>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 30px; justify-content: space-around;" id="charts-container">
+                    </div>
+            </div>
+
+            <script>
+                // We use Jinja to securely pass Python's math dictionary directly into JavaScript!
+                const analyticsData = {{ analytics_data | tojson | safe }};
+                const container = document.getElementById('charts-container');
+                
+                // Check if there are any MCQ questions at all
+                if (Object.keys(analyticsData).length === 0) {
+                    container.innerHTML = "<p style='color: #888; font-style: italic;'>Add multiple-choice questions to your form to see visual analytics here.</p>";
+                } else {
+                    // Loop through the data and create a donut chart for every MCQ question
+                    Object.keys(analyticsData).forEach(qid => {
+                        const chartInfo = analyticsData[qid];
+                        
+                        // Create a tiny canvas for each chart
+                        const wrapper = document.createElement('div');
+                        wrapper.style.width = "280px";
+                        wrapper.innerHTML = `<h4 style="text-align: center; color: #555; font-size: 15px; margin-bottom: 10px;">${chartInfo.question}</h4><canvas id="chart_${qid}"></canvas>`;
+                        container.appendChild(wrapper);
+                        
+                        // Draw the beautiful interactive chart
+                        new Chart(document.getElementById(`chart_${qid}`), {
+                            type: 'doughnut',
+                            data: {
+                                labels: chartInfo.labels,
+                                datasets: [{
+                                    data: chartInfo.data,
+                                    // A premium color palette
+                                    backgroundColor: ['#673ab7', '#00bcd4', '#e91e63', '#ff9800', '#4caf50', '#3f51b5'],
+                                    borderWidth: 2,
+                                    borderColor: '#ffffff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { position: 'bottom', labels: { boxWidth: 12 } }
+                                }
+                            }
+                        });
+                    });
+                }
+            </script>
+
+            {% if responses %}
+                {% for response in responses %}
+                
+                    <details class="details-card">
+                        
+                        <summary class="summary-header">
+                            <span>📧 {{ response.email if response.email else "Response " ~ loop.index }}</span>
+                            <span style="font-size: 14px; color: #673ab7; font-weight: normal;">Click to view form ⬇</span>
+                        </summary>
+                        
+                        <div class="replica-box">
+                            
+                            <div class="replica-header">
+                                <h3 style="margin: 0; font-size: 24px;">{{ form.title }}</h3>
+                                <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Response #{{ loop.index }}</p>
+                            </div>
+
+                            {% for question in questions %}
+                                {% set q_id_str = question._id | string %}
+                                {% set answer = response.responses.get(q_id_str, "") %}
+                                
+                                <div class="question-card">
+                                    <p style="font-size: 16px; margin-top: 0;"><strong>{{ question.question_text }}</strong></p>
+                                    
+                                    {% if question.question_type == "text" or question.question_type == "short answer" %}
+                                        <input type="text" class="text-input" value="{{ answer }}" readonly>
+                                    
+                                    {% elif question.question_type == "mcq" %}
+                                        {% for option in question.options %}
+                                            <div style="margin: 8px 0; display: flex; align-items: center;">
+                                                <input type="radio" disabled {% if option == answer %}checked{% endif %}>
+                                                
+                                                <label style="margin-left: 8px;" class="{% if option == answer %}selected-option{% endif %}">
+                                                    {{ option }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                        
+                                    {% elif question.question_type == "image" %}
+                                        {% if answer %}
+                                            <div style="margin-top: 10px;">
+                                                <a href="{{ url_for('static', filename='uploads/' + answer) }}" target="_blank" style="background-color: #673ab7; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 14px; display: inline-block;">🖼️ View Uploaded File</a>
+                                            </div>
+                                        {% else %}
+                                            <p style="color: #888; font-style: italic;">No file uploaded.</p>
+                                        {% endif %}
+                                    {% endif %}
+                                    
+                                </div>
+                            {% endfor %}
+                        </div> 
+                    </details>
+                {% endfor %}
+            {% else %}
+                <div style="background: white; padding: 30px; text-align: center; border-radius: 8px; color: #666; border: 1px solid #ccc;">
+                    <h3 style="margin-top: 0;">No responses yet</h3>
+                    <p>Share your form link to start collecting data!</p>
+                </div>
+            {% endif %}
+            
+        </div>
+    </body>
+</html>

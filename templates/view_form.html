@@ -1,0 +1,219 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>{{ form.title }}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}">
+        <style>
+            body { background-color: #f0ebf8; font-family: 'Roboto', Arial, sans-serif; }
+            .form-wrapper { max-width: 650px; margin: 40px auto; }
+            
+            .header-card { 
+                border-top: 8px solid #673ab7; background: white; padding: 20px 30px; 
+                border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; 
+            }
+            
+            /* 🎬 CINEMATIC CSS: Hiding all cards by default */
+            .step-card { 
+                display: none; 
+                background: white; padding: 30px; border-radius: 8px; 
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; 
+                border-left: 5px solid #673ab7;
+                opacity: 0; transform: translateY(20px);
+                transition: opacity 0.4s ease, transform 0.4s ease;
+            }
+            
+            /* Only the active card is visible and slides up smoothly */
+            .step-card.active { 
+                display: block; opacity: 1; transform: translateY(0);
+            }
+
+            .text-input { 
+                width: 100%; border: none; border-bottom: 2px solid #eee; 
+                padding: 12px 0; outline: none; font-size: 16px; transition: border-color 0.3s;
+            }
+            .text-input:focus { border-bottom: 2px solid #673ab7; }
+            
+            /* Navigation Buttons */
+            .nav-container { display: flex; justify-content: space-between; margin-top: 20px; }
+            .btn { 
+                padding: 10px 24px; border-radius: 4px; cursor: pointer; 
+                font-size: 14px; font-weight: bold; border: none; transition: background 0.2s;
+            }
+            .btn-secondary { background-color: #e0e0e0; color: #333; }
+            .btn-secondary:hover { background-color: #ccc; }
+            .btn-primary { background-color: #673ab7; color: white; }
+            .btn-primary:hover { background-color: #5e35b1; }
+            
+            .submit-btn { background-color: #2e7d32; color: white; width: 100%; padding: 12px; font-size: 16px; }
+            .submit-btn:hover { background-color: #1b5e20; }
+        </style>
+    </head>
+    <body>
+        <div class="form-wrapper">
+            
+            <div class="header-card">
+                <h1 style="margin: 0; font-size: 32px; color: #202124;">{{ form.title }}</h1>
+                <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">* Indicates required question</p>
+            </div>
+            
+            <form id="cinematic-form" action="/submit/{{ form._id }}" method="POST" enctype="multipart/form-data">
+                
+                <div class="step-card active">
+                    <p style="font-size: 18px; margin-top: 0;"><strong>Email Address *</strong></p>
+                    <input type="email" name="user_email" class="text-input" placeholder="example@email.com" required>
+                </div>
+
+                {% if questions %}
+                    {% for question in questions %}
+                        <div class="step-card">
+                            <p style="font-size: 18px; margin-top: 0;"><strong>{{ question.question_text }} *</strong></p>
+                            
+                            {% if question.question_type == "text" or question.question_type == "short answer" %}
+                                <div style="position: relative; display: flex; align-items: center;">
+                                    <input type="text" name="answer_{{ question._id | string }}" class="text-input" placeholder="Your answer" style="padding-right: 35px;" required>
+                                    <button type="button" class="mic-btn" style="position: absolute; right: 5px; background: none; border: none; cursor: pointer; font-size: 18px; outline: none;" title="Click to speak">🎤</button>
+                                </div>
+                            
+                            {% elif question.question_type == "mcq" %}
+                                {% for option in question.options %}
+                                    <div style="margin: 12px 0; font-size: 16px;">
+                                        <input type="radio" id="opt_{{ question._id | string}}_{{ loop.index }}" name="answer_{{ question._id | string }}" value="{{ option }}" required>
+                                        <label for="opt_{{ question._id | string}}_{{ loop.index }}" style="margin-left: 8px; cursor: pointer;">{{ option }}</label>
+                                    </div>
+                                {% endfor %}
+                                
+                            {% elif question.question_type == "image" %}
+                                <input type="file" name="answer_{{ question._id | string }}" accept="image/*" required style="margin-top: 15px;">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="nav-container">
+                    <button type="button" id="prev-btn" class="btn btn-secondary" style="display: none;">⬅ Back</button>
+                    <button type="button" id="next-btn" class="btn btn-primary">Next ➡</button>
+                </div>
+                
+                <div id="submit-container" style="display: none; margin-top: 20px;">
+                    <button type="submit" class="btn submit-btn">✨ Submit Form ✨</button>
+                </div>
+                
+            </form>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                
+                // 1. 🎬 CINEMATIC NAVIGATION LOGIC
+                const cards = document.querySelectorAll('.step-card');
+                const nextBtn = document.getElementById('next-btn');
+                const prevBtn = document.getElementById('prev-btn');
+                const submitContainer = document.getElementById('submit-container');
+                let currentIndex = 0;
+
+                function updateView() {
+                    // Hide all cards, show the current one
+                    cards.forEach((card, index) => {
+                        if (index === currentIndex) {
+                            card.classList.add('active');
+                        } else {
+                            card.classList.remove('active');
+                        }
+                    });
+
+                    // Manage Buttons
+                    prevBtn.style.display = (currentIndex === 0) ? 'none' : 'block';
+                    
+                    if (currentIndex === cards.length - 1) {
+                        nextBtn.style.display = 'none';
+                        submitContainer.style.display = 'block';
+                    } else {
+                        nextBtn.style.display = 'block';
+                        submitContainer.style.display = 'none';
+                    }
+                }
+
+                nextBtn.addEventListener('click', () => {
+                    // Force the browser to check if the current input is empty before moving on!
+                    const currentCard = cards[currentIndex];
+                    const inputs = currentCard.querySelectorAll('input');
+                    let isValid = true;
+                    
+                    inputs.forEach(input => {
+                        if (!input.checkValidity()) {
+                            input.reportValidity(); // Shows the "Please fill out this field" popup
+                            isValid = false;
+                        }
+                    });
+
+                    if (isValid) {
+                        currentIndex++;
+                        updateView();
+                    }
+                });
+
+                prevBtn.addEventListener('click', () => {
+                    currentIndex--;
+                    updateView();
+                });
+
+                // 2. 💾 MAGIC AUTO-SAVE LOGIC
+                const formId = "{{ form._id | string }}"; 
+                const allInputs = document.querySelectorAll('.text-input, input[type="radio"]');
+
+                allInputs.forEach(input => {
+                    const saveKey = `draft_${formId}_${input.name}`;
+                    const savedValue = localStorage.getItem(saveKey);
+
+                    if (savedValue) {
+                        if (input.type === 'radio' && input.value === savedValue) {
+                            input.checked = true;
+                        } else if (input.type !== 'radio' && input.type !== 'file') {
+                            input.value = savedValue;
+                        }
+                    }
+
+                    input.addEventListener('input', function() {
+                        if (input.type === 'radio') {
+                            if (input.checked) localStorage.setItem(saveKey, input.value);
+                        } else if (input.type !== 'file') {
+                            localStorage.setItem(saveKey, input.value);
+                        }
+                    });
+                });
+
+                document.getElementById('cinematic-form').addEventListener('submit', function() {
+                    allInputs.forEach(input => localStorage.removeItem(`draft_${formId}_${input.name}`));
+                });
+
+                // 3. 🎙️ VOICE DICTATION LOGIC
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    const recognition = new SpeechRecognition();
+                    recognition.continuous = false;
+                    
+                    document.querySelectorAll('.mic-btn').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const inputField = this.previousElementSibling; 
+                            const originalIcon = this.innerHTML;
+                            this.innerHTML = "🔴"; 
+                            recognition.start();
+
+                            recognition.onresult = function(event) {
+                                const transcript = event.results[0][0].transcript;
+                                inputField.value = inputField.value ? inputField.value + " " + transcript : transcript;
+                                inputField.dispatchEvent(new Event('input')); // Trigger auto-save
+                            };
+
+                            recognition.onspeechend = function() { recognition.stop(); btn.innerHTML = originalIcon; };
+                            recognition.onerror = function() { btn.innerHTML = originalIcon; };
+                        });
+                    });
+                } else {
+                    document.querySelectorAll('.mic-btn').forEach(btn => btn.style.display = 'none');
+                }
+            });
+        </script>
+    </body>
+</html>

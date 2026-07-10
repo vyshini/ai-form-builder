@@ -1,0 +1,347 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Dashboard</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+        
+        <style>
+            /* CSS Variables for consistent Google-style colors */
+            :root {
+                --primary: #673ab7;
+                --primary-hover: #5e35b1;
+                --bg-color: #f4f4f9;
+                --text-main: #202124;
+                --text-muted: #5f6368;
+                --card-bg: #ffffff;
+                --border-color: #dadce0;
+            }
+
+            body {
+                margin: 0; padding: 0;
+                font-family: 'Roboto', Arial, sans-serif;
+                background-color: var(--bg-color);
+                color: var(--text-main);
+            }
+
+            /* --- TOP NAVIGATION BAR --- */
+            .top-navbar {
+                background-color: var(--card-bg);
+                padding: 15px 40px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border-color);
+                box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            }
+
+            .top-navbar h2 {
+                margin: 0; font-size: 22px; font-weight: 500;
+            }
+
+            .create-btn {
+                background-color: var(--primary); color: white;
+                border: none; padding: 10px 24px; border-radius: 24px; /* Pill shape */
+                font-size: 14px; font-weight: bold; cursor: pointer;
+                text-decoration: none; transition: background-color 0.2s;
+                box-shadow: 0 2px 4px rgba(103, 58, 183, 0.3);
+            }
+            .create-btn:hover { background-color: var(--primary-hover); }
+
+            /* --- DASHBOARD CONTENT --- */
+            .container {
+                max-width: 1200px; margin: 40px auto; padding: 0 20px;
+            }
+
+            .section-title {
+                font-size: 16px; font-weight: 500; color: var(--text-muted);
+                margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px;
+            }
+
+            /* --- FORM CARDS GRID --- */
+            .form-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 25px;
+            }
+
+            .form-card {
+                background: var(--card-bg);
+                border: 1px solid var(--border-color); border-radius: 8px;
+                display: flex; flex-direction: column; overflow: hidden;
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            .form-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+                border-color: #c4b5fd;
+            }
+
+            /* Signature Purple Top Accent */
+            .card-accent { height: 6px; background-color: var(--primary); width: 100%; }
+
+            .card-header {
+                padding: 20px 20px 10px 20px;
+                display: flex; justify-content: space-between; align-items: flex-start;
+            }
+
+            .card-title {
+                font-size: 18px; font-weight: 500; margin: 0;
+                color: var(--text-main); white-space: nowrap;
+                overflow: hidden; text-overflow: ellipsis;
+            }
+
+            .delete-btn {
+                color: #d93025; text-decoration: none; font-size: 16px;
+                opacity: 0.6; transition: opacity 0.2s;
+            }
+            .delete-btn:hover { opacity: 1; }
+
+            .card-body { padding: 0 20px 20px 20px; }
+
+            /* --- ACTION BUTTONS --- */
+            .action-grid {
+                display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;
+            }
+
+            .action-btn {
+                display: flex; align-items: center; justify-content: center; gap: 6px;
+                padding: 8px; background-color: #f8f9fa; border: 1px solid #f1f3f4;
+                border-radius: 6px; text-decoration: none; color: var(--text-muted);
+                font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+                font-family: inherit;
+            }
+            .action-btn:hover {
+                background-color: #f1f3f4; color: var(--primary); border-color: #dadce0;
+            }
+
+            /* Highlight the "Responses" button as the primary action */
+            .action-primary {
+                grid-column: span 2; /* Make it full width across the bottom */
+                background-color: #f3e5f5; color: var(--primary); border-color: #e1bee7;
+            }
+            .action-primary:hover { background-color: #e1bee7; }
+        </style>
+    </head>
+    <body>
+        
+        <div class="top-navbar">
+            <h2>Welcome, {{ user_name }}</h2>
+            <a href="/create_form" class="create-btn">➕ Create New Form</a>  
+        </div>
+
+        <div class="container">
+            <div class="section-title">Recent Forms</div>
+            
+            {% if forms %}
+                <div class="form-grid">
+                    {% for form in forms %}
+                    <div class="form-card">
+                        <div class="card-accent"></div>
+                        
+                        <div class="card-header">
+                            <h3 class="card-title">{{ form.title }}</h3>
+                            <a href="/delete_form/{{ form._id }}" class="delete-btn" onclick="return confirm('Are you sure you want to delete this form?')" title="Delete Form">🗑️</a>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="action-grid">
+                                <a href="/view_form/{{ form._id }}" target="_blank" class="action-btn">👁️ View Form</a>
+                                
+                                <button onclick="copyLink('{{ url_for('view_form', form_id=form._id, _external=True) }}')" class="action-btn">🔗 Copy Link</button>
+                                
+                                <a href="/edit_form/{{ form._id }}" class="action-btn" style="grid-column: span 2;">✏️ Edit Questions</a>
+                                
+                                <a href="/view_responses/{{ form._id }}" class="action-btn action-primary">📊 View Responses</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 60px 20px; color: #5f6368; background: white; border-radius: 8px; border: 1px dashed #ccc;">
+                    <p style="font-size: 18px;">You haven't created any forms yet.</p>
+                    <p style="font-size: 14px;">Click the button in the top right to get started.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <script>
+            function copyLink(url) {
+                navigator.clipboard.writeText(url).then(function() {
+                    alert("Link copied! You can now share this form.");
+                }, function(err) {
+                    alert("Could not copy text: ", err);
+                });
+            }
+        </script>
+        <style>
+            .bot-btn { position: fixed; bottom: 30px; right: 30px; background: #673ab7; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; z-index: 1000; border: none; }
+            .bot-btn:hover { transform: scale(1.1); background: #5e35b1; }
+            
+            .chat-window { position: fixed; bottom: 100px; right: 30px; width: 350px; height: 450px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); display: none; flex-direction: column; overflow: hidden; z-index: 1000; border: 1px solid #ddd; }
+            .chat-header { background: #673ab7; color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; }
+            .close-chat { cursor: pointer; font-size: 18px; }
+            
+            .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f4f4f9; display: flex; flex-direction: column; gap: 10px; }
+            .msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 14px; line-height: 1.4; }
+            .msg-bot { background: #e0e0e0; align-self: flex-start; border-bottom-left-radius: 2px; color: #333; }
+            .msg-user { background: #673ab7; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+            
+            .chat-footer { padding: 10px; background: white; border-top: 1px solid #ddd; display: flex; gap: 5px; flex-wrap: wrap; }
+            .chat-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; outline: none; min-width: 60%; }
+            .chat-send { background: #673ab7; color: white; border: none; padding: 10px 15px; border-radius: 20px; cursor: pointer; }
+            
+            .choice-btn { background: #f0ebf8; color: #673ab7; border: 1px solid #673ab7; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 12px; }
+            .choice-btn:hover { background: #673ab7; color: white; }
+        </style>
+
+        <button class="bot-btn" onclick="toggleChat()">🤖</button>
+
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <span>Form Builder Bot</span>
+                <span class="close-chat" onclick="toggleChat()">✖</span>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <div class="msg msg-bot">Hi there! 👋 I can build a form for you in seconds. What should we title this new form?</div>
+            </div>
+            <div class="chat-footer" id="chatFooter">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Type here..." onkeypress="handleEnter(event)">
+                <button class="chat-send" onclick="handleUserInput()">Send</button>
+            </div>
+        </div>
+
+        <script>
+            let chatState = "ASK_TITLE";
+            let formData = { title: "", questions: [] };
+            let currentQuestion = {};
+
+            function toggleChat() {
+                const win = document.getElementById("chatWindow");
+                win.style.display = win.style.display === "flex" ? "none" : "flex";
+            }
+
+            function addMsg(text, sender) {
+                const body = document.getElementById("chatBody");
+                const div = document.createElement("div");
+                div.className = `msg msg-${sender}`;
+                div.innerText = text;
+                body.appendChild(div);
+                body.scrollTop = body.scrollHeight; // Auto-scroll to bottom
+            }
+
+            function setFooterChoices(html) {
+                document.getElementById("chatFooter").innerHTML = html;
+            }
+
+            function resetToInput() {
+                setFooterChoices(`
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Type here..." onkeypress="handleEnter(event)">
+                    <button class="chat-send" onclick="handleUserInput()">Send</button>
+                `);
+                document.getElementById("chatInput").focus();
+            }
+
+            function handleEnter(e) { if (e.key === 'Enter') handleUserInput(); }
+
+            // THE MAIN CONVERSATION LOGIC
+            function handleUserInput(forcedText = null) {
+                let inputVal = forcedText;
+                if (!forcedText) {
+                    const inputEl = document.getElementById("chatInput");
+                    if (!inputEl || !inputEl.value.trim()) return;
+                    inputVal = inputEl.value.trim();
+                }
+
+                addMsg(inputVal, "user");
+
+                // STATE MACHINE
+                setTimeout(() => {
+                    if (chatState === "ASK_TITLE") {
+                        formData.title = inputVal;
+                        addMsg(`Awesome. The title is "${formData.title}". What is your FIRST question?`, "bot");
+                        chatState = "ASK_Q_TEXT";
+                        resetToInput();
+                    } 
+                    else if (chatState === "ASK_Q_TEXT") {
+                        currentQuestion = { text: inputVal, type: "text", options: [] };
+                        addMsg("Got it. What kind of answer do you want for this?", "bot");
+                        // Show buttons instead of text input
+                        setFooterChoices(`
+                            <button class="choice-btn" onclick="handleUserInput('Short Answer')">Short Answer</button>
+                            <button class="choice-btn" onclick="handleUserInput('Multiple Choice')">Multiple Choice</button>
+                            <button class="choice-btn" onclick="handleUserInput('Image Upload')">Image Upload</button>
+                        `);
+                        chatState = "ASK_Q_TYPE";
+                    } 
+                    else if (chatState === "ASK_Q_TYPE") {
+                        if (inputVal === "Multiple Choice") {
+                            currentQuestion.type = "mcq";
+                            addMsg("Please type the options separated by commas (e.g. Red, Blue, Green).", "bot");
+                            chatState = "ASK_MCQ_OPTIONS";
+                            resetToInput();
+                        } else {
+                            currentQuestion.type = inputVal === "Image Upload" ? "image" : "text";
+                            finishQuestion();
+                        }
+                    } 
+                    else if (chatState === "ASK_MCQ_OPTIONS") {
+                        currentQuestion.options = inputVal.split(",").map(s => s.trim());
+                        finishQuestion();
+                    }
+                }, 500); // 500ms delay to feel like the bot is "typing"
+            }
+
+            function finishQuestion() {
+                formData.questions.push(currentQuestion);
+                addMsg("Saved! Do you want to add another question, or are we done?", "bot");
+                setFooterChoices(`
+                    <button class="choice-btn" onclick="handleUserInput('Add another')">➕ Add another</button>
+                    <button class="choice-btn" onclick="buildForm()" style="background: #2e7d32; color: white; border: none;">✨ Build Form Now</button>
+                `);
+                chatState = "ASK_NEXT_ACTION";
+            }
+
+            // OVERRIDE FOR THE "NEXT ACTION" STATE
+            const originalHandle = handleUserInput;
+            handleUserInput = function(forcedText = null) {
+                if (chatState === "ASK_NEXT_ACTION" && forcedText) {
+                    addMsg(forcedText, "user");
+                    setTimeout(() => {
+                        if (forcedText === "Add another") {
+                            addMsg("Great, what is the next question?", "bot");
+                            chatState = "ASK_Q_TEXT";
+                            resetToInput();
+                        }
+                    }, 500);
+                    return;
+                }
+                originalHandle(forcedText);
+            }
+
+            function buildForm() {
+                addMsg("Building Form Now...", "user");
+                addMsg("Magic in progress... 🪄", "bot");
+                setFooterChoices(""); // clear footer
+
+                // SEND DATA TO PYTHON API
+                fetch('/api/bot_create_form', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        addMsg("Done! Redirecting you to the editor...", "bot");
+                        setTimeout(() => {
+                            window.location.href = `/edit_form/${data.form_id}`;
+                        }, 1000);
+                    } else {
+                        addMsg("Oh no, something went wrong. Make sure you are logged in!", "bot");
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
