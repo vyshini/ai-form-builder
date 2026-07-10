@@ -18,7 +18,13 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
-client = MongoClient(MONGO_URI)
+
+client = MongoClient(
+    MONGO_URI, 
+    tls=True, 
+    tlsAllowInvalidCertificates=True
+)
+
 db = client["google_form_clone"]
 
 users_col = db["users"]
