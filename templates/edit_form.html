@@ -1,107 +1,108 @@
 <html>
     <head>
         <title>Form</title>
-        <link rel = "stylesheet" href = "{{url_for('static',filename = 'style2.css')}}">
+        <link rel="stylesheet" href="{{url_for('static',filename = 'style2.css')}}">
     </head>
     <body>
-        <h2 style = "text-align : center">{{form.title}}</h2>
-    <div style="text-align:center;">
-    <button onclick = "toggleform()" class = "add-btn2"> + Add Question</a>
-    </div>
-     <form method = "POST" enctype = "multipart/form-data">
-   
-<div id = "questionform" class = "form-container" style ="display:none;">
-    <form method = "POST" enctype = "multipart/form-data">
-         <div>
-        <label> Question Text</label><br><br>
-        <input type = "text" name = "question_text" required>
-        </div>
-    <div>
-        <label>Question type</label><br><br>
-        <select name = "question_type" id = "questionType" onchange = "toggleOptions()">
-            <option value = "text">Text</option>
-            <option value = "mcq">Multiple choice</option>
-            <option value = "image">Image</option>
-        </select>
-    </div>
+        <h2 style="text-align : center">{{form.title}}</h2>
         
-         <div id = "optionsContainer" style = "display :none;">
-            <label>options</label>
-            <div id = "optionFields">
-                <input type = "text" name = "options[]" placeholder = "option1">
-                <input type = "text" name = "options[]" placeholder = "option2">
+        <div style="text-align:center;">
+            <button onclick="toggleform()" class="add-btn2"> + Add Question </button>
+        </div>
+        
+        <div id="questionform" class="form-container" style="display:none;">
+            <form method="POST" enctype="multipart/form-data">
+                <div>
+                    <label> Question Text</label><br><br>
+                    <input type="text" name="question_text" required>
+                </div>
+                <div>
+                    <label>Question type</label><br><br>
+                    <select name="question_type" id="questionType" onchange="toggleOptions()">
+                        <option value="text">Text</option>
+                        <option value="mcq">Multiple choice</option>
+                        <option value="image">Image</option>
+                    </select>
+                </div>
+                
+                <div id="optionsContainer" style="display :none;">
+                    <label>options</label>
+                    <div id="optionFields">
+                        <input type="text" name="options[]" placeholder="option1">
+                        <input type="text" name="options[]" placeholder="option2">
+                    </div>
+                    <button type="button" onclick="addOption()"> + Add option </button>
+                </div>
+                
+                <button type="submit">Save Question</button>
+            </form>
+        </div>
+
+        <hr>
+
+        <form method="POST" action="/submit/{{ form._id }}" enctype="multipart/form-data">
+            <div class="form-wrapper">
+                {% if questions %}
+                    {% for question in questions %}
+                    <div class="google-card">
+                        <a href="/delete_question/{{ question._id }}/{{ form._id }}" style="color:red; text-decoration:none;">Delete</a>
+                        <p class="question-number">Question {{loop.index}}</p>
+                        <h3>{{question.question_text}}</h3>
+                        
+                        {% if question.question_type == "text" %}
+                            <input type="text" name="answer_{{ question._id }}" class="answer-input" placeholder="Your answer">
+                        {% elif question.question_type == "mcq" %}
+                            {% for option in question.options %}
+                            <div class="mcq_option">
+                                <input type="radio" name="answer_{{ question._id }}" value="{{option}}">{{option}}
+                            </div>
+                            {% endfor %}
+                        {% elif question.question_type == "image" %}
+                            <input type="file" name="answer_{{ question._id }}" accept="image/*" class="answer-input">
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="text-align : center"> No questions added yet.</p>
+                {% endif %}
             </div>
-            <button type = "button" onclick ="addOption()"> + Add option </button>
+            
+            {% if questions %}
+            <div style="text-align: center; margin-top: 20px; padding-bottom: 40px;">
+                <button type="submit" class="add-btn2" style="background-color: #673ab7; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Submit Form Answers</button>
             </div>
-        <button type = "submit">Save Question</button>
-       
-    </form>
-</div>
+            {% endif %}
+        </form>
 
-<hr>
-<form method="POST" action="/submit/{{ form._id }}" enctype="multipart/form-data">
- <div class = "form-wrapper">
-{% if questions %}
-    {% for question in questions %}
-    <div class = "google-card">
-        <a href="/delete_question/{{ question._id }}/{{ form._id }}" style="color:red; text-decoration:none;">Delete</a>
-        <p class = "question-number">Question{{loop.index}}</p></strong></p>
-        <h3>{{question.question_text}}</h3>
-   {% if question.question_type == "text" %}
-   <input type = "text" class = "answer-input" placeholder = "Your answer">
-   {% elif question.question_type == "mcq" %}
-   {% for option in question.options %}
-   <div class = "mcq_option">
-    <input type = "radio" name = "answer_{{ question._id }}"  value = "{{option}}">{{option}}
-   </div>
-   {% endfor %}
-   {% elif question.question_type == "image" %}
-       <input type="file" name="answer_{{ question._id }}"accept="image/*"class="answer-input">
-    {% endif %}
-    </div>
-    {% endfor %}
-   {% else %}
-    <p style = "text-align : center"> No questions added yet.</p>
-{% endif %}
-</div>
-</form>
- <script>
-        function toggleform()
-        {
-            var form = document.getElementById("questionform");
-            if(form.style.display === "none")
-        {
-            form.style.display = "block";
-        }
-        else
-            form.style.display = "none";
-        }
+        <script>
+            function toggleform() {
+                var form = document.getElementById("questionform");
+                if(form.style.display === "none" || form.style.display === "") {
+                    form.style.display = "block";
+                } else {
+                    form.style.display = "none";
+                }
+            }
 
-        function toggleOptions()
-        {
-            var type = document.getElementById("questionType").value;
-            var optionsDiv = document.getElementById("optionsContainer")
+            function toggleOptions() {
+                var type = document.getElementById("questionType").value;
+                var optionsDiv = document.getElementById("optionsContainer");
 
-            if(type === "mcq")
-                optionsDiv.style.display = "block";
-            else
-                optionsDiv.style.display = "none";
+                if(type === "mcq") {
+                    optionsDiv.style.display = "block";
+                } else {
+                    optionsDiv.style.display = "none";
+                }
+            }
 
-        }
-
-        function addOption()
-        {
-            var container = document.getElementById("optionFields");
-
-            var input = document.createElement("input");
-            input.type = "text";
-            input.name = "options[]"
-            input.placeholder = "new option";
-
-            container.appendChild(input);
-
-        }
-    </script>
+            function addOption() {
+                var container = document.getElementById("optionFields");
+                var input = document.createElement("input");
+                input.type = "text";
+                input.name = "options[]";
+                input.placeholder = "new option";
+                container.appendChild(input);
+            }
+        </script>
     </body>
-   
 </html>
