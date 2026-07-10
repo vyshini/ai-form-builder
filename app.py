@@ -16,7 +16,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-MONGO_URI = os.getenv("MONGO_URI")
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
 client = MongoClient(MONGO_URI)
 db = client["google_form_clone"]
 
